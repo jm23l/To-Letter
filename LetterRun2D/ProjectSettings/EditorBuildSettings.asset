@@ -1,0 +1,12 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/LetterTown2D.unity
+    guid: f3b500b7fd3677d4483d4eacd3f02d90
+  m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0
