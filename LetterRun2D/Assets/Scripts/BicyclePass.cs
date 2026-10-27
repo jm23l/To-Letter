@@ -9,7 +9,7 @@ namespace LetterRun2D
         public float[] laneHeights = {3.3f, -.2f, -2.7f};
         public float speed=8f;
         private float laneY=-.2f;
-        public float minimumInterval=4f, maximumInterval=7f;
+        public float minimumInterval=2f, maximumInterval=4f;
         public float warningDuration=1f;
         public bool Busy => stage!=0;
         private DeliveryGame game;

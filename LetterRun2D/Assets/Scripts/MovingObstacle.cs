@@ -11,13 +11,13 @@ namespace LetterRun2D
         [Min(.1f)] public float normalSpeedMultiplier = 2f;
         [Header("Rush cycle (one car)")]
         public bool rushEnabled;
-        [Min(.1f)] public float cruiseDuration = 5f;
+        [Min(.1f)] public float cruiseDuration = 3f;
         [Min(.5f)] public float warningDuration = 1f;
         [Min(.1f)] public float rushDuration = 3f;
         [Min(1)] public float rushMultiplier = 2f;
         [Header("Stop and depart (other car)")]
         public bool stopAndGoEnabled;
-        [Min(.1f)] public float stopDuration = 1.5f;
+        [Min(.1f)] public float stopDuration = 1f;
         [Min(.1f)] public float departureWarningDuration = .7f;
         private int stopPhase;
         private float stopTime;
@@ -96,7 +96,13 @@ namespace LetterRun2D
         }
         private bool toEnd = true;
         private float districtMultiplier = 1;
-        private void Awake() { body = GetComponent<Rigidbody2D>(); }
+        private void Awake()
+        {
+            body = GetComponent<Rigidbody2D>();
+            // Update the previous defaults retained by existing scene serialization.
+            if(Mathf.Approximately(cruiseDuration,5f))cruiseDuration=3f;
+            if(Mathf.Approximately(stopDuration,1.5f))stopDuration=1f;
+        }
         public void ResetObstacle(float multiplier, float progress = 0, bool towardsEnd = true)
         {
             if (body == null) body = GetComponent<Rigidbody2D>();
