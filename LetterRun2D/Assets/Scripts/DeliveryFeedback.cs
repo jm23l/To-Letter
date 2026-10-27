@@ -18,6 +18,9 @@ namespace LetterRun2D
         }
         private readonly List<Effect> effects=new List<Effect>();
         private DeliveryGame game;
+        private float bagCooldown, blockCooldown;
+        public float ShieldFlashRemaining { get; private set; }
+        public float SlowFlashRemaining { get; private set; }
         private RectTransform canvasRect, root;
         public void Initialize(DeliveryGame owner)
         {
@@ -45,12 +48,36 @@ namespace LetterRun2D
             for(int i=0;i<Mathf.Min(amount,8);i++)Fly(player,mailbox,null,LetterKind.Normal,i*.09f);
             game.Audio?.Play(AudioCue.Delivery);
         }
-        private void Popup(string message,Vector3 world,Color color)
+        public void BagFull(float delay=0)
+        {
+            if(bagCooldown>0)return;
+            bagCooldown=1.8f;
+            Popup("가방이 가득 찼어요!",game.player.transform.position+Vector3.up*.55f,new Color32(255,220,155,255),delay);
+        }
+        public void ShieldBlocked()
+        {
+            if(blockCooldown>0)return;
+            blockCooldown=.9f;ShieldFlashRemaining=.45f;
+            Popup("보호 성공!",game.player.transform.position+Vector3.up*.55f,new Color32(122,201,255,255));
+            game.Audio?.Play(AudioCue.ShieldBlock);
+        }
+        public void AbilityEnded(bool speed)
+        {
+            Popup(speed?"가속 종료":"보호 종료",game.player.transform.position+Vector3.up*.55f,
+                speed?new Color32(120,237,159,255):new Color32(122,201,255,255));
+            game.Audio?.Play(AudioCue.AbilityEnd);
+        }
+        public void SlowDepleted()
+        {
+            SlowFlashRemaining=.8f;
+            Popup("시간 감속 소진",game.player.transform.position+Vector3.up*.55f,new Color32(255,190,115,255));
+        }
+        private void Popup(string message,Vector3 world,Color color,float delay=0)
         {
             var rect=CreateRect("Feedback popup",root,Vector2.zero,Vector2.zero,new Vector2(230,42));
             var label=CreateText("Text",rect,22,color);label.text=message;
             var outline=label.gameObject.AddComponent<Outline>();outline.effectColor=new Color(0,0,0,.95f);outline.effectDistance=new Vector2(1,-1);
-            effects.Add(new Effect{rect=rect,graphic=label,from=world,to=world,duration=1.15f,tint=color});
+            effects.Add(new Effect{rect=rect,graphic=label,from=world,to=world,duration=1.15f,delay=delay,tint=color});
         }
         private void Fly(Vector3 from,Vector3 to,Transform follow,LetterKind kind,float delay)
         {
@@ -65,6 +92,10 @@ namespace LetterRun2D
             bool show=game.State==RoundState.Playing;
             root.gameObject.SetActive(show);
             if(!show)return;
+            float dt=Time.unscaledDeltaTime;
+            bagCooldown=Mathf.Max(0,bagCooldown-dt);blockCooldown=Mathf.Max(0,blockCooldown-dt);
+            ShieldFlashRemaining=Mathf.Max(0,ShieldFlashRemaining-dt);
+            SlowFlashRemaining=Mathf.Max(0,SlowFlashRemaining-dt);
             for(int i=effects.Count-1;i>=0;i--)
             {
                 var e=effects[i];e.age+=Time.unscaledDeltaTime;
@@ -89,7 +120,7 @@ namespace LetterRun2D
         public void Clear()
         {
             foreach(var e in effects)if(e.rect!=null)Destroy(e.rect.gameObject);
-            effects.Clear();game.Audio?.Stop();
+            effects.Clear();bagCooldown=blockCooldown=ShieldFlashRemaining=SlowFlashRemaining=0;game.Audio?.Stop();
         }
         public static Vector2 Project(RectTransform canvas,Vector3 position)
         {

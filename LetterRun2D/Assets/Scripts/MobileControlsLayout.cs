@@ -7,7 +7,8 @@ namespace LetterRun2D
     {
         private DeliveryGame game;
         private Text status;
-        private Image holdImage;
+        private Image holdImage, energyTrack;
+        private Color trackColor;
         public static void ApplyLayout(DeliveryGame owner)
         {
             if(owner==null || owner.holdButton==null || owner.energyFill==null)return;
@@ -27,6 +28,8 @@ namespace LetterRun2D
             if(pauseLabel!=null)SetBox(pauseLabel.rectTransform,new Vector2(.5f,.5f),Vector2.zero,new Vector2(86,36));
             var energy=(RectTransform)owner.energyFill.transform.parent;
             energy.SetParent(hud,false);
+            layout.energyTrack=energy.GetComponent<Image>();
+            if(layout.energyTrack!=null)layout.trackColor=layout.energyTrack.color;
             SetBox(energy,new Vector2(.5f,.5f),new Vector2(155,-35),new Vector2(120,6));
             var existing=hud.Find("Slow status");
             if(existing!=null)layout.status=existing.GetComponent<Text>();
@@ -55,6 +58,10 @@ namespace LetterRun2D
             status.color=empty?new Color32(158,174,183,255):game.IsSlowing?new Color32(255,220,155,255):new Color32(115,217,231,255);
             if(holdImage!=null)holdImage.color=empty?new Color32(55,68,78,255):game.IsSlowing?new Color32(54,164,180,255):new Color32(72,116,151,255);
             if(game.energyFill!=null)game.energyFill.color=status.color;
+            float flash=game.Feedback!=null?game.Feedback.SlowFlashRemaining:0;
+            if(energyTrack!=null)energyTrack.color=empty && flash>0?
+                Color.Lerp(trackColor,new Color(1,.65f,.25f),Mathf.Sin(Mathf.PI*flash/.8f)):trackColor;
+            if(empty && flash>0)status.color=new Color(1,.75f,.45f);
         }
     }
 }

@@ -57,10 +57,13 @@ namespace LetterRun2D
         {
             if (game == null || !game.IsPlaying) { StopMoving(); return; }
             float dt = Time.unscaledDeltaTime;
+            bool hadSpeed = SpeedRemaining > 0, hadShield = ShieldRemaining > 0;
             StunRemaining = Mathf.Max(0, StunRemaining - dt);
             GraceRemaining = Mathf.Max(0, GraceRemaining - dt);
             SpeedRemaining = Mathf.Max(0, SpeedRemaining - dt);
             ShieldRemaining = Mathf.Max(0, ShieldRemaining - dt);
+            if (hadSpeed && SpeedRemaining <= 0) game.Feedback?.AbilityEnded(true);
+            if (hadShield && ShieldRemaining <= 0) game.Feedback?.AbilityEnded(false);
             if (IsStunned) { StopMoving(); return; }
             Vector2 keyboard = moveAction.ReadValue<Vector2>();
             Vector2 touch = stick != null ? stick.Value : Vector2.zero;
@@ -78,12 +81,13 @@ namespace LetterRun2D
         public void Collect()
         {
             if (game == null || !game.IsPlaying || IsStunned || !game.CanCollect) return;
-            if (Carried >= game.carryCapacity) { game.Notify("가방이 가득 찼어요. 우체통에 배달하세요."); return; }
+            if (Carried >= game.carryCapacity) { game.Feedback?.BagFull(); return; }
             LetterItem nearest = null;
             float best = pickupRadius * pickupRadius;
             foreach (var letter in game.letters)
             {
                 if (letter == null || !letter.gameObject.activeInHierarchy || letter.Collected) continue;
+                if (game.Conveyor != null && game.Conveyor.BlocksPickup(transform.position, letter.transform.position)) continue;
                 float distance = new Vector2(letter.transform.position.x - transform.position.x, letter.transform.position.y - transform.position.y).sqrMagnitude;
                 if (distance <= best) { nearest = letter; best = distance; }
             }
@@ -93,6 +97,7 @@ namespace LetterRun2D
                 Carried++;
                 game.Feedback?.Collected(nearest.kind, nearest.transform.position, transform);
                 game.Tutorial?.OnCollected();
+                if (Carried >= game.carryCapacity) game.Feedback?.BagFull(.65f);
                 if (nearest.kind == LetterKind.Speed)
                 { ShieldRemaining = 0; SpeedRemaining = speedDuration; game.Notify("가속 편지를 주웠어요!"); }
                 else if (nearest.kind == LetterKind.Shield)

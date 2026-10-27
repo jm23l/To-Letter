@@ -13,6 +13,7 @@ namespace LetterRun2D
             public CanvasGroup group;
             public Texture2D texture;
             public Sprite sprite;
+            public Image icon;
         }
         private Indicator speed, shield;
         public static void Attach(DeliveryGame target)
@@ -52,7 +53,7 @@ namespace LetterRun2D
             }
             item.texture.Apply();item.sprite=Sprite.Create(item.texture,new Rect(0,0,16,16),new Vector2(.5f,.5f),16);
             var iconRect=DeliveryFeedback.CreateRect("Ability icon",item.root,new Vector2(.5f,0),new Vector2(0,21),new Vector2(23,23));
-            var icon=iconRect.gameObject.AddComponent<Image>();icon.sprite=item.sprite;icon.raycastTarget=false;
+            var icon=iconRect.gameObject.AddComponent<Image>();item.icon=icon;icon.sprite=item.sprite;icon.raycastTarget=false;
             var outline=icon.gameObject.AddComponent<Outline>();outline.effectColor=new Color(0,0,0,.85f);outline.effectDistance=new Vector2(1,-1);
             var track=DeliveryFeedback.CreateRect("Time track",item.root,new Vector2(.5f,0),new Vector2(0,5),new Vector2(30,5));
             var background=track.gameObject.AddComponent<Image>();background.color=new Color32(20,36,42,220);background.raycastTarget=false;
@@ -66,6 +67,9 @@ namespace LetterRun2D
             item.root.anchoredPosition=new Vector2(x,0);
             item.fill.sizeDelta=new Vector2(28*Mathf.Clamp01(seconds/Mathf.Max(.1f,duration)),3);
             item.group.alpha=Mathf.Clamp01(seconds/.35f);
+            float flash=item==shield && game.Feedback!=null?game.Feedback.ShieldFlashRemaining:0;
+            item.icon.color=flash>0?Color.Lerp(Color.white,new Color(.5f,.85f,1),.5f+.5f*Mathf.Sin(flash*35)):Color.white;
+            item.icon.rectTransform.localScale=Vector3.one*(flash>0?1+.25f*Mathf.Sin(Mathf.PI*flash/.45f):1);
         }
         private Vector2 ToCanvas(Vector2 screen)
         {

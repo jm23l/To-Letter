@@ -47,12 +47,42 @@ namespace LetterRun2D
             closedSide=0;elapsed=0;
             if(blockers!=null)foreach(var blocker in blockers)blocker.enabled=false;
         }
-        private bool Occupied(int side)
+        private void ClearClosingArea(int side)
         {
-            var gate=blockers[side];
-            foreach(var hit in Physics2D.OverlapBoxAll(gate.transform.position,gate.size+Vector2.one*.15f,0))
-                if(hit.GetComponent<CourierPlayer>()!=null)return true;
+            var player=game.player;
+            var body=player.GetComponent<Rigidbody2D>();
+            var circle=player.GetComponent<CircleCollider2D>();
+            Vector2 center=circle.bounds.center;
+            Vector2 extent=circle.bounds.extents;
+            Vector2 gate=blockers[side].transform.position;
+            Vector2 half=blockers[side].size*.5f;
+            if(Mathf.Abs(center.x-gate.x)>half.x+extent.x || Mathf.Abs(center.y-gate.y)>half.y+extent.y+.03f)return;
+            // Close on schedule; gently move to the nearer side instead of trapping the player.
+            float sign=center.y>=gate.y?1f:-1f;
+            float destination=gate.y+sign*(half.y+extent.y+.06f);
+            Vector2 position=body.position+Vector2.up*(destination-center.y);
+            player.StopMoving();body.position=position;player.transform.position=position;
+            Physics2D.SyncTransforms();
+        }
+        public bool BlocksPickup(Vector2 from,Vector2 to)
+        {
+            if(game==null || game.IsTraining || blockers==null)return false;
+            foreach(var blocker in blockers)
+            {
+                if(!blocker.enabled)continue;
+                Vector2 center=blocker.transform.position,half=blocker.size*.5f;
+                Vector2 delta=to-from;float enter=0,exit=1;
+                if(ClipAxis(from.x,delta.x,center.x-half.x,center.x+half.x,ref enter,ref exit) &&
+                   ClipAxis(from.y,delta.y,center.y-half.y,center.y+half.y,ref enter,ref exit))return true;
+            }
             return false;
+        }
+        private static bool ClipAxis(float start,float delta,float min,float max,ref float enter,ref float exit)
+        {
+            if(Mathf.Abs(delta)<.00001f)return start>=min && start<=max;
+            float a=(min-start)/delta,b=(max-start)/delta;
+            if(a>b){float swap=a;a=b;b=swap;}
+            enter=Mathf.Max(enter,a);exit=Mathf.Min(exit,b);return enter<=exit;
         }
         private void FixedUpdate()
         {
@@ -60,12 +90,14 @@ namespace LetterRun2D
             if(game.IsTraining || game.State==RoundState.Menu || game.State==RoundState.Result)
             {foreach(var blocker in blockers)blocker.enabled=false;return;}
             if(!game.IsPlaying)return;
-            blockers[closedSide].enabled=!Occupied(closedSide) || blockers[closedSide].enabled;
+            if(!blockers[closedSide].enabled)ClearClosingArea(closedSide);
+            blockers[closedSide].enabled=true;
             blockers[1-closedSide].enabled=false;
             elapsed+=Time.fixedDeltaTime*game.ObstacleFactor;
-            if(elapsed>=Mathf.Max(.1f,holdDuration)+Mathf.Max(.1f,warningDuration) && !Occupied(1-closedSide))
+            if(elapsed>=Mathf.Max(.1f,holdDuration)+Mathf.Max(.1f,warningDuration))
             {
                 blockers[closedSide].enabled=false;closedSide=1-closedSide;
+                ClearClosingArea(closedSide);
                 blockers[closedSide].enabled=true;elapsed=0;
             }
         }

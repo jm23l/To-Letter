@@ -14,6 +14,7 @@ namespace LetterRun2D
         [Min(1)] public float minimumCarMultiplier = 1.2f;
         [Min(1)] public float maximumCarMultiplier = 1.55f;
         [Min(.5f)] public float minimumLetterSpacing = 1.1f;
+        [Min(1f)] public float minimumAbilitySpacing = 3f;
         [Header("Safe candidate positions for the default 2D town")]
         public Vector2[] lowerCandidates = {
             new Vector2(-2.8f,-4.5f),new Vector2(-1.5f,-4.6f),new Vector2(1.5f,-4.6f),new Vector2(2.8f,-4.5f),
@@ -60,7 +61,7 @@ namespace LetterRun2D
             if(fixedSeed<=0 && LastSeed==previousSeed)LastSeed=LastSeed==int.MaxValue-1?1:LastSeed+1;
             previousSeed=LastSeed;
             var random=new System.Random(LastSeed);
-            // Spread the available letters across three regions (12 letters: 4 per region).
+            // Spread the available letters across three regions (15 letters: 5 per region).
             // Keep the original layout if the edited scene does not have enough safe candidates.
             var positions=new List<Vector2>();
             int count=0;foreach(var l in game.letters)if(l!=null)count++;
@@ -71,12 +72,7 @@ namespace LetterRun2D
             if(placed)
             {
                 Shuffle(positions,random);
-                int index=0;
-                foreach(var letter in game.letters) if(letter!=null)
-                {
-                    Vector2 pos=positions[index++];
-                    letter.transform.position=new Vector3(pos.x,pos.y,letter.transform.position.z);
-                }
+                AssignLetters(positions,random);
             }
             else Debug.LogWarning("안전한 편지 후보 위치가 부족해 원래 배치를 사용합니다.",this);
             foreach(var car in game.obstacles)
@@ -95,20 +91,66 @@ namespace LetterRun2D
                 h.ResetHazard(1);
             }
         }
+        private void AssignLetters(List<Vector2> positions,System.Random random)
+        {
+            var letters=new List<LetterItem>();
+            foreach(var letter in game.letters)if(letter!=null)letters.Add(letter);
+            int speed=letters.FindIndex(l=>l.kind==LetterKind.Speed);
+            int shield=letters.FindIndex(l=>l.kind==LetterKind.Shield);
+            if(speed>=0 && shield>=0)
+            {
+                // Swap destinations only: preserve five letters in each region and safe spacing.
+                var pairs=new List<Vector2Int>();
+                float distance=Mathf.Max(3f,minimumAbilitySpacing);
+                for(int i=0;i<positions.Count;i++)for(int j=i+1;j<positions.Count;j++)
+                    if(Region(positions[i])!=Region(positions[j]) && Vector2.Distance(positions[i],positions[j])>=distance)
+                        pairs.Add(new Vector2Int(i,j));
+                if(pairs.Count==0)
+                {
+                    Debug.LogWarning("능력 편지를 떨어뜨릴 안전한 위치가 없어 기존 배치를 유지합니다.",this);
+                    return;
+                }
+                var pair=pairs[random.Next(pairs.Count)];
+                Vector2 first=positions[pair.x],second=positions[pair.y];
+                if(random.Next(2)==0){Vector2 swap=first;first=second;second=swap;}
+                positions.RemoveAt(pair.y);positions.RemoveAt(pair.x);
+                PlaceLetter(letters[speed],first);PlaceLetter(letters[shield],second);
+                int index=0;
+                for(int i=0;i<letters.Count;i++)if(i!=speed && i!=shield)PlaceLetter(letters[i],positions[index++]);
+            }
+            else for(int i=0;i<letters.Count;i++)PlaceLetter(letters[i],positions[i]);
+        }
+        private int Region(Vector2 point)
+        {
+            float lower=-1.5f,upper=2f;
+            if(game.obstacles.Length>=2 && game.obstacles[0]!=null && game.obstacles[1]!=null)
+            {
+                lower=Mathf.Min(game.obstacles[0].startPoint.y,game.obstacles[1].startPoint.y);
+                upper=Mathf.Max(game.obstacles[0].startPoint.y,game.obstacles[1].startPoint.y);
+            }
+            return point.y<lower?0:point.y>upper?2:1;
+        }
+        private static void PlaceLetter(LetterItem letter,Vector2 pos)
+        {letter.transform.position=new Vector3(pos.x,pos.y,letter.transform.position.z);}
         private bool Choose(Vector2[] candidates,int count,List<Vector2> chosen,System.Random random)
         {
             if(count==0)return true;
             if(candidates==null)return false;
             var pool=new List<Vector2>(candidates);Shuffle(pool,random);
-            int added=0;
-            foreach(var point in pool)
+            pool.RemoveAll(point=>!Safe(point));
+            return ChooseSeparated(pool,0,count,chosen);
+        }
+        private bool ChooseSeparated(List<Vector2> pool,int start,int count,List<Vector2> chosen)
+        {
+            if(count==0)return true;
+            for(int i=start;i<=pool.Count-count;i++)
             {
-                if(!Safe(point))continue;
-                bool separated=true;
+                Vector2 point=pool[i];bool separated=true;
                 foreach(var used in chosen)if(Vector2.Distance(point,used)<minimumLetterSpacing){separated=false;break;}
                 if(!separated)continue;
-                chosen.Add(point);added++;
-                if(added==count)return true;
+                chosen.Add(point);
+                if(ChooseSeparated(pool,i+1,count-1,chosen))return true;
+                chosen.RemoveAt(chosen.Count-1);
             }
             return false;
         }

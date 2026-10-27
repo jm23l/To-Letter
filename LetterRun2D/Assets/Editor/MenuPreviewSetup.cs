@@ -28,7 +28,7 @@ namespace LetterRun2D.Editor
                 {
                     if(game.menuPanel==null || game.startButton==null)continue;
                     var styled=game.GetComponent<PostalUI>();
-                    if(styled!=null && styled.HasLayout)continue;
+                    if(styled!=null && styled.HasLayout && game.letters.Length>=15 && game.targetDeliveries!=6 && game.targetDeliveries!=10)continue;
                     TownContentUpdate.Apply(game);
                     MobileControlsLayout.ApplyLayout(game);
                     PostalUI.Apply(game);

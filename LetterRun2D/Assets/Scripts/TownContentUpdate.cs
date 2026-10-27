@@ -9,7 +9,7 @@ namespace LetterRun2D
         public static void Apply(DeliveryGame game)
         {
             // Migrate the previous default also in existing serialized scenes.
-            if(game.targetDeliveries==6)game.targetDeliveries=10;
+            if(game.targetDeliveries==6 || game.targetDeliveries==10)game.targetDeliveries=12;
             var letters=new List<LetterItem>();
             LetterItem normal=null;
             foreach(var letter in game.letters)
@@ -17,9 +17,9 @@ namespace LetterRun2D
                 if(letter==null)continue;
                 letters.Add(letter);if(normal==null && letter.kind==LetterKind.Normal)normal=letter;
             }
-            Vector2[] additions={new Vector2(-1.5f,-4.6f),new Vector2(1.5f,-4.6f),new Vector2(-1.4f,-.2f),new Vector2(1.4f,-.2f)};
-            int next=0;
-            while(normal!=null && letters.Count<12 && next<additions.Length)
+            Vector2[] additions={new Vector2(-1.5f,-4.6f),new Vector2(1.5f,-4.6f),new Vector2(-1.4f,-.2f),new Vector2(1.4f,-.2f),new Vector2(0,4.4f),new Vector2(-2.9f,.9f),new Vector2(2.9f,.9f)};
+            int next=Mathf.Clamp(letters.Count-8,0,additions.Length);
+            while(normal!=null && letters.Count<15 && next<additions.Length)
             {
                 var extra=Object.Instantiate(normal,normal.transform.parent);
                 extra.name="Extra normal letter "+(next+1);

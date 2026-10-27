@@ -83,7 +83,7 @@ namespace LetterRun2D
             AnchorBox(hud.rectTransform, new Vector2(0.5f, 1), new Vector2(0, -58), new Vector2(448, 88));
             game.timerLabel = Label("Timer", hud.transform, "01:00", new Vector2(-153, 12), new Vector2(115, 42), 29);
             game.bagLabel = Label("Bag", hud.transform, "가방 0/3", new Vector2(0, 12), new Vector2(150, 42), 22);
-            game.deliveryLabel = Label("Delivered", hud.transform, "배달 0/10", new Vector2(-69, -24), new Vector2(290, 25), 15);
+            game.deliveryLabel = Label("Delivered", hud.transform, "배달 0/12", new Vector2(-69, -24), new Vector2(290, 25), 15);
             game.pauseButton = Button("Pause", hud.transform, "일시정지", new Vector2(165, 2), new Vector2(90, 47), new Color32(66, 91, 113, 255), 14);
 
             var controls = Rect("Controls", safe, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);

@@ -18,7 +18,7 @@ namespace LetterRun2D
         {
             var ui=game.GetComponent<PostalUI>();
             if(ui==null)ui=game.gameObject.AddComponent<PostalUI>();
-            if(ui.HasLayout){ui.Refresh();return;}
+            if(ui.HasLayout){TownContentUpdate.Apply(game);ui.Refresh();return;}
             ui.Build(game);
         }
         private static void Box(RectTransform r,Vector2 position,Vector2 size)
@@ -111,6 +111,11 @@ namespace LetterRun2D
         }
         private void Refresh()
         {
+            if(cards.Count>0 && cards[0]!=null && cards[0].Find("Game version")==null)
+            {
+                var label=Label("v1.0",cards[0],new Vector2(0,-301),new Vector2(120,22),14,Teal);
+                label.transform.parent.name="Game version";
+            }
             for(int i=0;i<cards.Count;i++)
             {
                 if(cards[i]==null)continue;

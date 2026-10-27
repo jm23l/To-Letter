@@ -9,7 +9,7 @@ namespace LetterRun2D
     {
         [Header("Rules")]
         [Min(1)] public float timeLimit = 60;
-        [Min(1)] public int targetDeliveries = 10;
+        [Min(1)] public int targetDeliveries = 12;
         [Min(1)] public int carryCapacity = 3;
         [Min(0)] public float collisionPenalty = 3;
         [Min(0.1f)] public float hitCooldown = 1;
@@ -163,7 +163,7 @@ namespace LetterRun2D
             if (IsSlowing)
             {
                 Energy = Mathf.Max(0, Energy - dt);
-                if (Energy <= 0) { exhausted = true; IsSlowing = false; }
+                if (Energy <= 0) { exhausted = true; IsSlowing = false; Feedback?.SlowDepleted(); }
             }
             // Energy is a per-round budget: only BeginRound/ShowMenu refill it.
             if (IsSlowing != wasSlowing) Audio?.Play(IsSlowing ? AudioCue.SlowStart : AudioCue.SlowEnd);
@@ -178,7 +178,7 @@ namespace LetterRun2D
             bagLabel.text = $"가방 {player.Carried}/{carryCapacity}";
             deliveryLabel.text = IsTraining ? "튜토리얼 · 시간 제한 없음" : $"배달  {Delivered}/{targetDeliveries}";
             energyFill.fillAmount = Energy / Mathf.Max(0.1f, maximumEnergy);
-            collectButton.interactable = IsPlaying && CanCollect && !player.IsStunned && player.Carried < carryCapacity;
+            collectButton.interactable = IsPlaying && CanCollect && !player.IsStunned;
             pauseButton.interactable = IsPlaying;
             hintLabel.text = IsPlaying ? (Time.unscaledTime < hintUntil ? hint :
                 (IsSlowing ? "장애물 감속 중 · 제한 시간은 계속 흘러요" : "이동: 가상 스틱 · 수집: 탭 · 감속: 홀드")) : "";
@@ -206,7 +206,9 @@ namespace LetterRun2D
 
         public void Hit()
         {
-            if (!IsPlaying || (IsTraining && !Tutorial.PracticeSlow) || player.IsProtected || Time.unscaledTime < nextHitTime) return;
+            if (!IsPlaying || (IsTraining && !Tutorial.PracticeSlow)) return;
+            if (player.ShieldRemaining > 0) { Feedback?.ShieldBlocked(); return; }
+            if (player.GraceRemaining > 0 || Time.unscaledTime < nextHitTime) return;
             Audio?.Play(AudioCue.Hit);
             float penalty = IsTraining ? 0 : collisionPenalty;
             Feedback?.Hit(penalty,player.transform.position);
