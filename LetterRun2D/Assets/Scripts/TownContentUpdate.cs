@@ -34,6 +34,7 @@ namespace LetterRun2D
             }
             Physics2D.SyncTransforms();
             var rules=game.menuPanel.transform.Find("Rules");
+            if(rules==null)rules=game.menuPanel.transform.Find("Postal card/Rules");
             if(rules!=null)
             {
                 var label=rules.GetComponent<Text>();

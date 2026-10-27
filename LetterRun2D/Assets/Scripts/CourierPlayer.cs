@@ -94,9 +94,9 @@ namespace LetterRun2D
                 game.Feedback?.Collected(nearest.kind, nearest.transform.position, transform);
                 game.Tutorial?.OnCollected();
                 if (nearest.kind == LetterKind.Speed)
-                { SpeedRemaining = speedDuration; game.Notify("가속 편지를 주웠어요!"); }
+                { ShieldRemaining = 0; SpeedRemaining = speedDuration; game.Notify("가속 편지를 주웠어요!"); }
                 else if (nearest.kind == LetterKind.Shield)
-                { ShieldRemaining = shieldDuration; game.Notify("보호 편지를 주웠어요!"); }
+                { SpeedRemaining = 0; ShieldRemaining = shieldDuration; game.Notify("보호 편지를 주웠어요!"); }
                 else
                 {
                     game.Notify(Carried == game.carryCapacity ? "가방이 가득 찼어요. 우체통으로!" : "편지를 주웠어요!");

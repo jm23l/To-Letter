@@ -49,10 +49,11 @@ namespace LetterRun2D
         private void Refresh()
         {
             if(game==null || status==null)return;
+            bool empty=!game.IsTraining && game.Energy<=0;
             int percent=Mathf.RoundToInt(100*game.Energy/Mathf.Max(.1f,game.maximumEnergy));
-            status.text=game.IsTraining?(game.IsSlowing?"감속 연습 중":"연습 중"):game.IsSlowing?$"감속 중 {percent}%":$"감속 {percent}%";
-            status.color=game.IsSlowing?new Color32(255,220,155,255):new Color32(115,217,231,255);
-            if(holdImage!=null)holdImage.color=game.IsSlowing?new Color32(54,164,180,255):new Color32(72,116,151,255);
+            status.text=game.IsTraining?(game.IsSlowing?"감속 연습 중":"연습 중"):empty?"감속 소진":game.IsSlowing?$"감속 중 {percent}%":$"감속 {percent}%";
+            status.color=empty?new Color32(158,174,183,255):game.IsSlowing?new Color32(255,220,155,255):new Color32(115,217,231,255);
+            if(holdImage!=null)holdImage.color=empty?new Color32(55,68,78,255):game.IsSlowing?new Color32(54,164,180,255):new Color32(72,116,151,255);
             if(game.energyFill!=null)game.energyFill.color=status.color;
         }
     }

@@ -4,18 +4,22 @@ using UnityEngine.UI;
 namespace LetterRun2D
 {
     // Reuses existing buttons/listeners, including saved scenes. Decorative elements never intercept touch.
+    [ExecuteAlways]
     public class PostalUI : MonoBehaviour
     {
         private static readonly Color Ink=new Color32(35,64,70,255);
         private static readonly Color Teal=new Color32(43,111,113,255);
         private static readonly Color Paper=new Color32(250,242,219,255);
         private static readonly Color Coral=new Color32(207,105,77,255);
-        private readonly List<RectTransform> cards=new List<RectTransform>();
-        private readonly List<Vector2> sizes=new List<Vector2>();
+        [SerializeField, HideInInspector] private List<RectTransform> cards=new List<RectTransform>();
+        [SerializeField, HideInInspector] private List<Vector2> sizes=new List<Vector2>();
+        public bool HasLayout => cards.Count==3 && sizes.Count==3 && cards.TrueForAll(card=>card!=null);
         public static void Apply(DeliveryGame game)
         {
-            if(game.GetComponent<PostalUI>()!=null)return;
-            game.gameObject.AddComponent<PostalUI>().Build(game);
+            var ui=game.GetComponent<PostalUI>();
+            if(ui==null)ui=game.gameObject.AddComponent<PostalUI>();
+            if(ui.HasLayout){ui.Refresh();return;}
+            ui.Build(game);
         }
         private static void Box(RectTransform r,Vector2 position,Vector2 size)
         {
@@ -85,8 +89,8 @@ namespace LetterRun2D
             Image("Rule divider",start,new Vector2(0,14),new Vector2(344,2),new Color32(204,190,160,255));
             Existing(game.menuPanel,"Rules",start,new Vector2(0,-28),new Vector2(376,64),18);
             MenuButton(game.startButton,start,-117,Teal);
-            var instructions=Existing(game.menuPanel,"Instructions",start,new Vector2(0,-225),new Vector2(370,100),16);
-            if(instructions!=null)instructions.text="스틱으로 이동 · 탭으로 편지 줍기\n꾹 눌러 시간 감속 · 우체통에서 자동 배달\n처음 시작하면 조작을 연습할 수 있어요";
+            var instructions=Existing(game.menuPanel,"Instructions",start,new Vector2(0,-225),new Vector2(370,116),16);
+            if(instructions!=null)instructions.text=$"스틱으로 이동 · 탭으로 편지 줍기\n꾹 눌러 시간 감속 · 우체통에서 자동 배달\n감속 총 {game.maximumEnergy:0.#}초 · 자동 충전 없음\n중앙 차단봉: 열린 쪽 통로로 이동\n노란 불이 깜빡이면 통로가 바뀌어요";
             var result=Card(game.resultPanel,new Vector2(420,570));
             Label("배달 기록",result,new Vector2(0,225),new Vector2(340,30),18,Teal);
             SpriteIcon("letter",result,new Vector2(0,158),new Vector2(80,56));

@@ -140,7 +140,9 @@ namespace LetterRun2D
             pause.gameObject.SetActive(false);
             var events = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             events.transform.SetParent(root.transform);
+            TownContentUpdate.Apply(game);
             MobileControlsLayout.ApplyLayout(game);
+            PostalUI.Apply(game);
             camera.GetComponent<CameraFrame2D>().Refresh();
             root.SetActive(true);
             return root;

@@ -17,7 +17,6 @@ namespace LetterRun2D
         [Min(0)] public float recoveryDuration = 1.4f;
         [Header("Time ability")]
         [Min(0.1f)] public float maximumEnergy = 5;
-        [Min(0)] public float energyRecovery = 0.8f;
         [Range(0.05f, 1)] public float slowFactor = 0.3f;
         [Header("World")]
         public CourierPlayer player;
@@ -43,6 +42,7 @@ namespace LetterRun2D
         public DeliveryFeedback Feedback { get; private set; }
         public GameAudio Audio { get; private set; }
         public BicyclePass Bicycle { get; private set; }
+        public CentralConveyor Conveyor { get; private set; }
         public RoundVariation Variation { get; private set; }
         public bool IsTraining => Tutorial != null && Tutorial.Active;
         public bool CanCollect => !IsTraining || Tutorial.CanCollect;
@@ -60,6 +60,7 @@ namespace LetterRun2D
             Audio.Initialize();
             TownContentUpdate.Apply(this);
             Bicycle=BicyclePass.Attach(this);
+            Conveyor=CentralConveyor.Attach(this);
             // Existing scenes also receive exactly one rush car: the road near the mailbox.
             MovingObstacle rushCar=null;
             foreach(var car in obstacles)
@@ -91,6 +92,7 @@ namespace LetterRun2D
         {
             finishDelay = 0;
             Bicycle?.ResetPass();
+            Conveyor?.ResetCycle();
             Tutorial?.RestoreLetters();
             Variation?.Restore();
             Feedback?.Clear();
@@ -122,6 +124,7 @@ namespace LetterRun2D
         {
             finishDelay = 0;
             Bicycle?.ResetPass();
+            Conveyor?.ResetCycle();
             Tutorial?.Cancel();
             Variation?.Restore();
             Feedback?.Clear();
@@ -162,7 +165,7 @@ namespace LetterRun2D
                 Energy = Mathf.Max(0, Energy - dt);
                 if (Energy <= 0) { exhausted = true; IsSlowing = false; }
             }
-            else Energy = Mathf.Min(maximumEnergy, Energy + energyRecovery * dt);
+            // Energy is a per-round budget: only BeginRound/ShowMenu refill it.
             if (IsSlowing != wasSlowing) Audio?.Play(IsSlowing ? AudioCue.SlowStart : AudioCue.SlowEnd);
         }
 
