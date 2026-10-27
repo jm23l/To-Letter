@@ -80,9 +80,9 @@ namespace LetterRun2D
             Tutorial.Initialize(this);
             if (hintLabel != null) hintLabel.enabled = showGameplayHints;
             collectButton.onClick.AddListener(player.Collect);
-            startButton.onClick.AddListener(BeginRound);
-            retryButton.onClick.AddListener(BeginRound);
-            menuButton.onClick.AddListener(ShowMenu);
+            startButton.onClick.AddListener(() => { BeginRound(); Audio?.Play(AudioCue.Button); });
+            retryButton.onClick.AddListener(() => { BeginRound(); Audio?.Play(AudioCue.Button); });
+            menuButton.onClick.AddListener(() => { ShowMenu(); Audio?.Play(AudioCue.Button); });
             pauseButton.onClick.AddListener(Pause);
             resumeButton.onClick.AddListener(Resume);
             ShowMenu();

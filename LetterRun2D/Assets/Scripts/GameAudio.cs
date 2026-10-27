@@ -1,7 +1,7 @@
 using UnityEngine;
 namespace LetterRun2D
 {
-    public enum AudioCue { Pickup, Delivery, Speed, Shield, Hit, SlowStart, SlowEnd, Start, Win, Lose, Pause, Resume, Warning, BicycleBell }
+    public enum AudioCue { Pickup, Delivery, Speed, Shield, Hit, SlowStart, SlowEnd, Start, Win, Lose, Pause, Resume, Warning, BicycleBell, Button }
     public class GameAudio : MonoBehaviour
     {
         [Range(0,1)] public float effectsVolume=.55f;
@@ -12,7 +12,7 @@ namespace LetterRun2D
         {
             source=gameObject.AddComponent<AudioSource>();source.playOnAwake=false;
             source.spatialBlend=0;source.loop=false;
-            string[] names={"pickup","delivery","speed","shield","hit","slow_start","slow_end","start","win","lose","pause","resume","warning","bicycle_bell"};
+            string[] names={"pickup","delivery","speed","shield","hit","slow_start","slow_end","start","win","lose","pause","resume","warning","bicycle_bell","button"};
             clips=new AudioClip[names.Length];
             for(int i=0;i<names.Length;i++)clips[i]=Resources.Load<AudioClip>("Audio/"+names[i]);
         }
