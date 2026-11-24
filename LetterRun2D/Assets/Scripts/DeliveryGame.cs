@@ -231,6 +231,7 @@ namespace LetterRun2D
             ClearInput();
             controlsPanel.SetActive(false);
             resultPanel.SetActive(true);
+            ScoreSaver.Instance.Save(Delivered);
             resultLabel.text = (won ? "배달 성공!" : "시간 종료!") +
                 $"\n\n배달한 편지  {Delivered}/{targetDeliveries}\n남은 시간  {Mathf.CeilToInt(RemainingTime)}초";
         }
